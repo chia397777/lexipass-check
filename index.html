@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>法智通 安裝體檢</title>
+<style>
+  :root{
+    --ok:#16a34a; --warn:#d97706; --bad:#dc2626;
+    --ink:#1f2937; --soft:#6b7280; --line:#e5e7eb; --bg:#f3f4f6; --card:#fff;
+    --brand:#1e3a5f;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0;font-family:"PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.6;
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:20px 16px 48px;}
+  header{text-align:center;padding:24px 0 8px;}
+  header .logo{
+    width:64px;height:64px;border-radius:16px;background:var(--brand);
+    display:inline-flex;align-items:center;justify-content:center;
+    color:#fff;font-size:30px;font-weight:700;
+  }
+  header h1{font-size:22px;margin:14px 0 4px;}
+  header p{color:var(--soft);font-size:14px;margin:0;}
+
+  .verdict{
+    border-radius:18px;padding:22px 20px;color:#fff;text-align:center;
+    margin:20px 0;box-shadow:0 6px 20px rgba(0,0,0,.08);
+  }
+  .verdict.ok{background:linear-gradient(135deg,#16a34a,#22c55e);}
+  .verdict.warn{background:linear-gradient(135deg,#d97706,#f59e0b);}
+  .verdict.bad{background:linear-gradient(135deg,#dc2626,#ef4444);}
+  .verdict .big{font-size:40px;line-height:1;}
+  .verdict h2{margin:10px 0 4px;font-size:20px;}
+  .verdict p{margin:0;opacity:.95;font-size:14px;}
+
+  .card{
+    background:var(--card);border-radius:16px;padding:6px 18px;
+    box-shadow:0 2px 8px rgba(0,0,0,.05);margin-bottom:16px;
+  }
+  .row{
+    display:flex;align-items:center;gap:12px;
+    padding:13px 0;border-bottom:1px solid var(--line);
+  }
+  .row:last-child{border-bottom:none;}
+  .row .ic{font-size:20px;width:26px;text-align:center;}
+  .row .meta{flex:1;min-width:0;}
+  .row .meta .t{font-size:15px;font-weight:600;}
+  .row .meta .v{font-size:13px;color:var(--soft);word-break:break-all;}
+  .badge{
+    font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;
+    white-space:nowrap;
+  }
+  .badge.ok{background:#dcfce7;color:var(--ok);}
+  .badge.warn{background:#fef3c7;color:var(--warn);}
+  .badge.bad{background:#fee2e2;color:var(--bad);}
+  .badge.na{background:#f3f4f6;color:var(--soft);}
+
+  .section-title{font-size:13px;color:var(--soft);font-weight:700;margin:22px 4px 8px;letter-spacing:.5px;}
+
+  .btn{
+    display:block;width:100%;border:none;border-radius:14px;
+    padding:16px;font-size:17px;font-weight:700;cursor:pointer;
+    margin-top:10px;text-align:center;text-decoration:none;
+  }
+  .btn.primary{background:var(--brand);color:#fff;}
+  .btn.ghost{background:#fff;color:var(--brand);border:2px solid var(--brand);}
+  .btn:active{transform:scale(.99);}
+
+  .note{font-size:12px;color:var(--soft);text-align:center;margin-top:14px;}
+  .foot{text-align:center;color:#9ca3af;font-size:11px;margin-top:28px;}
+  details{background:#fff;border-radius:12px;padding:4px 14px;margin-top:10px;font-size:13px;color:var(--soft);}
+  summary{padding:10px 0;cursor:pointer;font-weight:600;color:var(--ink);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">法</div>
+    <h1>法智通 安裝體檢</h1>
+    <p>插上手機免裝 App，先檢查你的手機適不適合</p>
+  </header>
+
+  <div id="verdict" class="verdict warn">
+    <div class="big">⏳</div>
+    <h2>檢測中…</h2>
+    <p>正在讀取你的手機資料</p>
+  </div>
+
+  <div class="section-title">檢測項目</div>
+  <div class="card" id="items"></div>
+
+  <div id="action"></div>
+
+  <details>
+    <summary>為什麼有些項目顯示「需安裝後才知道」？</summary>
+    <p>手機瀏覽器基於隱私保護，無法讀到 100% 精準的記憶體與儲存空間。
+    這版是「免安裝快速體檢」，已盡量估算；若需完整精準數據，可改用 USB 接電腦的完整版檢測。</p>
+  </details>
+
+  <div class="foot">法智通 LexiPass · 安裝體檢工具 v0.1（雛形）</div>
+</div>
+
+<script>
+/* ============================================================
+   判讀標準（之後可在這裡調整數字）
+   ============================================================ */
+const STD = {
+  android: { ok:9,  warn:7 },     // Android 9+ 適合；7~8 勉強；<7 不適合
+  ios:     { ok:14, warn:12 },    // iOS 14+ 適合；12~13 勉強；<12 不適合
+  ramGB:   { ok:3,  warn:2 },     // RAM 3GB+ 適合；2~3 勉強；<2 不適合
+  freeGB:  { ok:1,  warn:0.3 },   // 可用空間 1GB+ 適合；0.3~1 勉強；<0.3 不適合
+  screenW: { ok:360, warn:320 },  // 螢幕寬 360px+ 適合
+};
+const RANK = { ok:0, warn:1, bad:2, na:-1 };
+
+/* ---------- 工具 ---------- */
+function badge(level){
+  return {ok:'✅ 適合',warn:'⚠️ 勉強',bad:'❌ 不適合',na:'— 需安裝後才知道'}[level];
+}
+function tier(val, s, higherBetter=true){
+  if(val==null) return 'na';
+  if(higherBetter){
+    if(val>=s.ok) return 'ok';
+    if(val>=s.warn) return 'warn';
+    return 'bad';
+  }
+}
+
+/* ---------- 偵測：作業系統與版本 ---------- */
+function detectOS(){
+  const ua = navigator.userAgent;
+  let os='未知', ver=null, type='other';
+  let m;
+  if(/Android/i.test(ua)){
+    type='android';
+    m = ua.match(/Android\s+([\d.]+)/);
+    ver = m ? parseFloat(m[1]) : null;
+    os = 'Android ' + (m ? m[1] : '（版本未知）');
+  } else if(/iPhone|iPad|iPod/i.test(ua)){
+    type='ios';
+    m = ua.match(/OS\s+(\d+)[_.](\d+)/);
+    ver = m ? parseFloat(m[1]+'.'+m[2]) : null;
+    os = 'iOS ' + (m ? m[1]+'.'+m[2] : '（版本未知）');
+  } else if(/Windows/i.test(ua)){ os='Windows 電腦'; type='desktop'; }
+  else if(/Mac/i.test(ua)){ os='Mac 電腦'; type='desktop'; }
+  return {os, ver, type};
+}
+
+/* ---------- 偵測：瀏覽器 ---------- */
+function detectBrowser(){
+  const ua=navigator.userAgent; let m;
+  if((m=ua.match(/EdgA?\/([\d.]+)/))) return 'Edge '+m[1];
+  if((m=ua.match(/CriOS\/([\d.]+)/))) return 'Chrome '+m[1];
+  if((m=ua.match(/Chrome\/([\d.]+)/))) return 'Chrome '+m[1];
+  if((m=ua.match(/Version\/([\d.]+).*Safari/))) return 'Safari '+m[1];
+  if((m=ua.match(/FxiOS|Firefox\/([\d.]+)/))) return 'Firefox '+(m[1]||'');
+  return '其他瀏覽器';
+}
+
+/* ---------- 偵測：網路 ---------- */
+function detectNet(){
+  const online = navigator.onLine;
+  const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  let speed=null, type='';
+  if(c){ speed=c.effectiveType; type = speed; }
+  return {online, speed};
+}
+
+/* ---------- 偵測：RAM（約略，Chrome 才有） ---------- */
+function detectRAM(){
+  return ('deviceMemory' in navigator) ? navigator.deviceMemory : null; // GB
+}
+
+/* ---------- 偵測：儲存空間估算 ---------- */
+async function detectStorage(){
+  if(navigator.storage && navigator.storage.estimate){
+    try{
+      const e = await navigator.storage.estimate();
+      const freeGB = (e.quota - (e.usage||0)) / (1024**3);
+      return freeGB;
+    }catch(_){}
+  }
+  return null;
+}
+
+/* ============================================================
+   主流程
+   ============================================================ */
+async function run(){
+  const osInfo = detectOS();
+  const browser = detectBrowser();
+  const net = detectNet();
+  const ram = detectRAM();
+  const freeGB = await detectStorage();
+  const sw = window.screen.width;
+
+  const items = [];
+
+  // 系統版本
+  let osLevel='na';
+  if(osInfo.type==='android') osLevel = tier(osInfo.ver, STD.android);
+  else if(osInfo.type==='ios') osLevel = tier(osInfo.ver, STD.ios);
+  else if(osInfo.type==='desktop') osLevel='warn';
+  items.push({ic:'📱',t:'系統版本',v:osInfo.os,level:osLevel,
+    desc: osInfo.type==='desktop' ? '建議改用手機開啟' : ''});
+
+  // 網路
+  let netLevel = !net.online ? 'bad' : (net.speed==='slow-2g'||net.speed==='2g' ? 'warn':'ok');
+  items.push({ic:'🌐',t:'網路連線',
+    v: net.online ? ('已連線'+(net.speed? '・'+net.speed:'')) : '未連線',
+    level:netLevel});
+
+  // RAM
+  let ramLevel = tier(ram, STD.ramGB);
+  items.push({ic:'🧠',t:'記憶體 RAM',
+    v: ram!=null ? ('約 '+ram+' GB（估算）') : '此瀏覽器無法讀取',
+    level:ramLevel});
+
+  // 儲存空間
+  let stoLevel = tier(freeGB, STD.freeGB);
+  items.push({ic:'💾',t:'可用空間',
+    v: freeGB!=null ? ('約 '+freeGB.toFixed(1)+' GB（估算）') : '此瀏覽器無法讀取',
+    level:stoLevel});
+
+  // 螢幕
+  let scrLevel = tier(sw, STD.screenW);
+  items.push({ic:'📐',t:'螢幕寬度',v:sw+' px',level:scrLevel});
+
+  // 瀏覽器
+  items.push({ic:'🧭',t:'瀏覽器',v:browser,level:'ok'});
+
+  renderItems(items);
+  renderVerdict(items, osInfo);
+  renderAction(osInfo);
+}
+
+function renderItems(items){
+  document.getElementById('items').innerHTML = items.map(it=>`
+    <div class="row">
+      <div class="ic">${it.ic}</div>
+      <div class="meta">
+        <div class="t">${it.t}</div>
+        <div class="v">${it.v}${it.desc?'　·　'+it.desc:''}</div>
+      </div>
+      <div class="badge ${it.level}">${badge(it.level)}</div>
+    </div>`).join('');
+}
+
+function renderVerdict(items, osInfo){
+  // 取所有「真的有讀到」的項目裡最差的等級（na 不計）
+  let worst = 'ok';
+  items.forEach(it=>{ if(RANK[it.level]>RANK[worst]) worst=it.level; });
+  const el = document.getElementById('verdict');
+  const map = {
+    ok:  {cls:'ok',  ic:'🟢', h:'你的手機適合安裝！', p:'各項檢查都通過，可以放心安裝法智通'},
+    warn:{cls:'warn',ic:'🟡', h:'勉強可以，但要注意', p:'部分項目偏低，安裝後可能比較吃力'},
+    bad: {cls:'bad', ic:'🔴', h:'這支手機不建議安裝', p:'有項目未達標，安裝後可能無法正常使用'},
+  };
+  const m = map[worst];
+  el.className = 'verdict '+m.cls;
+  el.innerHTML = `<div class="big">${m.ic}</div><h2>${m.h}</h2><p>${m.p}</p>`;
+}
+
+function renderAction(osInfo){
+  const box = document.getElementById('action');
+  let html = '';
+  if(osInfo.type==='android'){
+    html = `<a class="btn primary" href="#" onclick="alert('這裡之後會放法智通 APK 下載連結');return false;">⬇️ 下載並安裝法智通</a>
+            <div class="note">Android 直接安裝。首次安裝需允許「未知來源」，會有圖文教學。</div>`;
+  } else if(osInfo.type==='ios'){
+    html = `<a class="btn primary" href="#" onclick="alert('這裡之後會放 TestFlight 連結');return false;">前往 TestFlight 安裝</a>
+            <div class="note">iPhone 需透過 Apple 官方 TestFlight 安裝（蘋果規定）。</div>`;
+  } else {
+    html = `<a class="btn ghost" href="#" onclick="alert('請改用手機掃描網址');return false;">請改用「手機」開啟此頁</a>
+            <div class="note">目前偵測到你用電腦開啟，請用手機瀏覽器掃描網址再測一次。</div>`;
+  }
+  html += `<button class="btn ghost" onclick="copyReport()">📋 複製體檢報告（傳給客服）</button>`;
+  box.innerHTML = html;
+}
+
+function copyReport(){
+  const v = document.getElementById('verdict').innerText.replace(/\n+/g,' ');
+  const rows = [...document.querySelectorAll('#items .row')].map(r=>{
+    const t=r.querySelector('.t').innerText;
+    const val=r.querySelector('.v').innerText;
+    const b=r.querySelector('.badge').innerText;
+    return `・${t}：${val}（${b}）`;
+  }).join('\n');
+  const text = `📋 法智通安裝體檢報告\n總評：${v}\n${rows}\n裝置：${navigator.userAgent}`;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(()=>alert('報告已複製，可貼給客服！'));
+  } else {
+    prompt('複製以下報告：', text);
+  }
+}
+
+run();
+</script>
+</body>
+</html>
