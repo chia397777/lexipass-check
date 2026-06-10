@@ -223,6 +223,15 @@ body{
   <!-- 診斷項目 -->
   <div class="section-title">系統需求檢查</div>
 
+  <div class="check-card" id="card-model">
+    <div class="check-icon ci-default" id="icon-model">📲</div>
+    <div class="check-info">
+      <div class="check-name">手機型號</div>
+      <div class="check-value" id="val-model">等待檢查...</div>
+    </div>
+    <div class="check-result"><div class="result-badge rb-wait" id="badge-model">待檢查</div></div>
+  </div>
+
   <div class="check-card" id="card-os">
     <div class="check-icon ci-default" id="icon-os">📱</div>
     <div class="check-info">
@@ -290,23 +299,6 @@ body{
     <div class="check-result"><div class="result-badge rb-wait" id="badge-camera">待檢查</div></div>
   </div>
 
-  <div class="check-card" id="card-gps">
-    <div class="check-icon ci-default" id="icon-gps">📍</div>
-    <div class="check-info">
-      <div class="check-name">GPS 定位</div>
-      <div class="check-value" id="val-gps">等待檢查...</div>
-    </div>
-    <div class="check-result"><div class="result-badge rb-wait" id="badge-gps">待檢查</div></div>
-  </div>
-
-  <div class="check-card" id="card-notification">
-    <div class="check-icon ci-default" id="icon-notification">🔔</div>
-    <div class="check-info">
-      <div class="check-name">推播通知</div>
-      <div class="check-value" id="val-notification">等待檢查...</div>
-    </div>
-    <div class="check-result"><div class="result-badge rb-wait" id="badge-notification">待檢查</div></div>
-  </div>
 
   <!-- 解決方案（診斷後顯示） -->
   <div id="solutionArea" style="display:none;margin-top:20px;">
@@ -320,13 +312,11 @@ body{
     <div style="background:rgba(0,0,0,.3);border-radius:12px;padding:14px;font-family:'DM Mono',monospace;font-size:10px;color:var(--stone);line-height:2;" id="deviceInfoContent"></div>
   </div>
 
-  <!-- 分享報告 -->
-  <div id="shareArea" style="display:none;">
-    <div class="share-row">
-      <button class="share-btn sb-copy" onclick="copyReport()">📋 複製報告</button>
-      <button class="share-btn sb-save" onclick="saveReport()">💾 儲存結果</button>
-      <button class="share-btn sb-share" onclick="shareReport()">📤 分享報告</button>
-    </div>
+  <!-- 傳送報告給客服 -->
+  <div id="shareArea" style="display:none;margin-top:20px;">
+    <button class="share-btn sb-share" style="width:100%;padding:16px;font-size:14px;letter-spacing:1px;"
+      onclick="sendToSupport()">📤 傳送診斷報告給客服</button>
+    <div class="install-note">把這份報告傳給服務人員，方便快速判斷與排除您手機的問題</div>
   </div>
 
   <!-- 誠實聲明 -->
@@ -354,11 +344,56 @@ const IOS_NOTE = 'iPhone 版本的安裝方式請洽客服協助';  // 不杜撰
 const SUPPORT = 'chia397777@gmail.com';
 
 /* 權重（僅計入「測得到」的項目，動態分母，誠實計分） */
-const WEIGHT = {os:25, network:20, storage:15, memory:15,
-                browser:10, netquality:5, camera:5, gps:2, notification:3};
+const WEIGHT = {os:30, network:20, storage:15, memory:15,
+                browser:10, netquality:5, camera:5};
 
 let results = {};
 let deviceType = 'other';
+let deviceModel = '未知';
+
+/* ─ 常見機型代碼 → 好懂名字（沒對到的會顯示原始代碼） ─ */
+const MODEL_MAP = {
+  // 三星 Galaxy S 系列
+  'SM-G991B':'Galaxy S21','SM-G996B':'Galaxy S21+','SM-G998B':'Galaxy S21 Ultra',
+  'SM-S901B':'Galaxy S22','SM-S906B':'Galaxy S22+','SM-S908B':'Galaxy S22 Ultra',
+  'SM-S911B':'Galaxy S23','SM-S916B':'Galaxy S23+','SM-S918B':'Galaxy S23 Ultra',
+  'SM-S921B':'Galaxy S24','SM-S928B':'Galaxy S24 Ultra',
+  // 三星 A / Note / 摺疊
+  'SM-A546B':'Galaxy A54','SM-A346B':'Galaxy A34','SM-N9860':'Galaxy Note20 Ultra',
+  'SM-F946B':'Galaxy Z Fold5','SM-F731B':'Galaxy Z Flip5',
+  // Google Pixel
+  'Pixel 6':'Pixel 6','Pixel 6a':'Pixel 6a','Pixel 7':'Pixel 7','Pixel 7 Pro':'Pixel 7 Pro',
+  'Pixel 8':'Pixel 8','Pixel 8 Pro':'Pixel 8 Pro','Pixel 9':'Pixel 9',
+};
+/* ─ 從代碼推測品牌（台灣常見） ─ */
+function brandFromCode(code){
+  if(/^SM-/i.test(code))                 return 'Samsung 三星';
+  if(/^Pixel/i.test(code))               return 'Google';
+  if(/^ASUS/i.test(code))                return 'ASUS 華碩';
+  if(/^CPH/i.test(code))                 return 'OPPO';
+  if(/^RMX/i.test(code))                 return 'realme';
+  if(/^V2\d{3}/i.test(code))             return 'vivo';
+  if(/(Redmi|^M2|POCO|^2[0-9]{3}|^23[0-9])/i.test(code)) return 'Xiaomi/Redmi 小米';
+  if(/Nokia/i.test(code))                return 'Nokia';
+  if(/HTC/i.test(code))                  return 'HTC';
+  return '';
+}
+/* ─ 偵測機型（優先用新版 API，再退回 UA 解析） ─ */
+async function detectModel(){
+  const ua=navigator.userAgent;
+  if(/iPhone|iPad|iPod/i.test(ua)) return {code:'iPhone', apple:true};
+  // Chrome 新版的 high-entropy client hints（Android 最準）
+  if(navigator.userAgentData && navigator.userAgentData.getHighEntropyValues){
+    try{
+      const d=await navigator.userAgentData.getHighEntropyValues(['model']);
+      if(d.model) return {code:d.model};
+    }catch(_){}
+  }
+  // 退回從 UA 字串抓型號
+  let m = ua.match(/;\s*([^;)]+?)\s+Build\//) || ua.match(/Android\s+[\d.]+;\s*([^;)]+?)\)/);
+  if(m){ let c=m[1].replace(/\s*\bwv\b/,'').trim(); if(c && c.toLowerCase()!=='k') return {code:c}; }
+  return {code:''};
+}
 
 function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
 
@@ -402,6 +437,23 @@ async function startDiagnosis(){
   document.getElementById('installArea').style.display='none';
 
   const ua=navigator.userAgent;
+
+  /* ─ 0. 手機型號 ─ */
+  setChecking('model'); await sleep(500);
+  const md=await detectModel();
+  if(md.apple){
+    deviceModel='iPhone（型號未公開）';
+    setCard('model','na','iPhone（Apple 不提供詳細型號）','無法識別');
+  } else if(md.code){
+    const friendly=MODEL_MAP[md.code];
+    const brand=brandFromCode(md.code);
+    deviceModel = friendly ? (friendly+'（'+md.code+'）') : (brand?brand+'　'+md.code:md.code);
+    setCard('model','pass', deviceModel, '✅ 已識別');
+  } else {
+    const isAndroid=/Android/i.test(ua);
+    deviceModel = isAndroid ? 'Android 機型（未提供代碼）' : '桌面裝置或無法識別';
+    setCard('model','na', isAndroid?'Android 機型（瀏覽器未提供代碼）':'桌面裝置或無法識別', '無法識別');
+  }
 
   /* ─ 1. 作業系統 ─ */
   setChecking('os'); await sleep(500);
@@ -485,20 +537,6 @@ async function startDiagnosis(){
     }catch(_){ setCard('camera','warn','需授權後確認','⚠️ 需授權'); record('camera','warn',0.5); }
   } else { setCard('camera','na','此瀏覽器無法讀取','需安裝後確認'); record('camera','na',0); }
 
-  /* ─ 8. GPS（誠實：僅檢查是否支援定位 API，非實際定位） ─ */
-  setChecking('gps'); await sleep(300);
-  if('geolocation' in navigator){ setCard('gps','pass','支援定位（使用時需授權）','✅ 支援'); record('gps','pass',1); }
-  else{ setCard('gps','warn','不支援定位 API','⚠️ 受限'); record('gps','warn',0.5,'此裝置不支援定位，就近法律資源搜尋功能可能受限'); }
-
-  /* ─ 9. 推播通知 ─ */
-  setChecking('notification'); await sleep(300);
-  if('Notification' in window){
-    const p=Notification.permission;
-    if(p==='granted'){ setCard('notification','pass','已授權','✅ 已授權'); record('notification','pass',1); }
-    else if(p==='default'){ setCard('notification','pass','支援（使用時會詢問）','✅ 支援'); record('notification','pass',1); }
-    else{ setCard('notification','warn','已被封鎖','⚠️ 被封鎖'); record('notification','warn',0.5,'推播被封鎖，將收不到案件更新通知，可到設定開啟'); }
-  } else { setCard('notification','warn','不支援推播','⚠️ 受限'); record('notification','warn',0.5,'此瀏覽器不支援推播通知'); }
-
   /* ══ 計分（動態分母，只算測得到的項目） ══ */
   await sleep(400);
   let earned=0, possible=0;
@@ -567,7 +605,8 @@ function showSolutions(){
 function showDeviceInfo(){
   const ua=navigator.userAgent;
   const conn=navigator.connection||{};
-  const c=`裝置代理字串：${ua.substring(0,90)}...
+  const c=`手機型號：${deviceModel}
+裝置代理字串：${ua.substring(0,90)}...
 螢幕解析度：${screen.width} × ${screen.height}（寬 ${window.innerWidth}px）
 像素密度：${window.devicePixelRatio||1}x
 語言設定：${navigator.language}
@@ -625,25 +664,20 @@ function buildReportText(){
   return lines.join('\n');
 }
 
-function copyReport(){
+function sendToSupport(){
   const text=buildReportText();
-  if(navigator.clipboard){ navigator.clipboard.writeText(text).then(()=>alert('✅ 已複製診斷報告，可貼給客服')); }
-  else{ prompt('複製以下報告：', text); }
-}
-
-function saveReport(){
-  const el=document.createElement('a');
-  el.href='data:text/plain;charset=utf-8,'+encodeURIComponent(buildReportText());
-  el.download='lexipass-診斷報告.txt';
-  el.click();
-}
-
-function shareReport(){
   if(navigator.share){
-    navigator.share({title:'法智通裝置診斷報告',
-      text:'診斷分數：'+document.getElementById('scoreNum').textContent+'/100　'+document.getElementById('scoreStatus').textContent,
-      url:location.href});
-  } else { copyReport(); }
+    navigator.share({title:'法智通裝置診斷報告', text}).catch(()=>fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+function fallbackCopy(text){
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(()=>alert('✅ 報告已複製，請貼給客服：'+SUPPORT));
+  } else {
+    prompt('複製此報告傳給客服（'+SUPPORT+'）：', text);
+  }
 }
 </script>
 </body>
