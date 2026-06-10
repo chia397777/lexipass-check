@@ -1,303 +1,650 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>法智通 安裝體檢</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>法智通 — 裝置相容性診斷工具</title>
 <style>
-  :root{
-    --ok:#16a34a; --warn:#d97706; --bad:#dc2626;
-    --ink:#1f2937; --soft:#6b7280; --line:#e5e7eb; --bg:#f3f4f6; --card:#fff;
-    --brand:#1e3a5f;
-  }
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-  body{
-    margin:0;font-family:"PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
-    background:var(--bg);color:var(--ink);line-height:1.6;
-  }
-  .wrap{max-width:520px;margin:0 auto;padding:20px 16px 48px;}
-  header{text-align:center;padding:24px 0 8px;}
-  header .logo{
-    width:64px;height:64px;border-radius:16px;background:var(--brand);
-    display:inline-flex;align-items:center;justify-content:center;
-    color:#fff;font-size:30px;font-weight:700;
-  }
-  header h1{font-size:22px;margin:14px 0 4px;}
-  header p{color:var(--soft);font-size:14px;margin:0;}
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=DM+Mono:wght@400;500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --ink:#1a1209;--gold:#c9922a;--gold-l:#e8b84b;
+  --jade:#2d6b4a;--seal:#8b1a1a;--sky:#2a5a8b;
+  --parchment:#f5f0e8;--stone:#6b6358;--mist:#e8e2d6;
+}
+body{
+  background:linear-gradient(135deg,#0d0906 0%,#1a1209 100%);
+  min-height:100vh;font-family:'Noto Serif TC',serif;
+  color:var(--parchment);padding:0;
+}
 
-  .verdict{
-    border-radius:18px;padding:22px 20px;color:#fff;text-align:center;
-    margin:20px 0;box-shadow:0 6px 20px rgba(0,0,0,.08);
-  }
-  .verdict.ok{background:linear-gradient(135deg,#16a34a,#22c55e);}
-  .verdict.warn{background:linear-gradient(135deg,#d97706,#f59e0b);}
-  .verdict.bad{background:linear-gradient(135deg,#dc2626,#ef4444);}
-  .verdict .big{font-size:40px;line-height:1;}
-  .verdict h2{margin:10px 0 4px;font-size:20px;}
-  .verdict p{margin:0;opacity:.95;font-size:14px;}
+/* ── 頂部 ── */
+.header{
+  background:rgba(10,7,2,.6);backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(201,146,42,.2);
+  padding:16px 20px;display:flex;align-items:center;
+  justify-content:space-between;position:sticky;top:0;z-index:100;
+}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,var(--seal),#6a1010);
+  border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:18px;border:1px solid rgba(201,146,42,.3);}
+.logo-text{font-size:14px;font-weight:900;color:var(--gold);letter-spacing:2px;}
+.logo-sub{font-size:8px;color:var(--stone);font-family:'DM Mono',monospace;margin-top:1px;}
+.version{font-size:9px;color:var(--stone);font-family:'DM Mono',monospace;letter-spacing:1px;}
 
-  .card{
-    background:var(--card);border-radius:16px;padding:6px 18px;
-    box-shadow:0 2px 8px rgba(0,0,0,.05);margin-bottom:16px;
-  }
-  .row{
-    display:flex;align-items:center;gap:12px;
-    padding:13px 0;border-bottom:1px solid var(--line);
-  }
-  .row:last-child{border-bottom:none;}
-  .row .ic{font-size:20px;width:26px;text-align:center;}
-  .row .meta{flex:1;min-width:0;}
-  .row .meta .t{font-size:15px;font-weight:600;}
-  .row .meta .v{font-size:13px;color:var(--soft);word-break:break-all;}
-  .badge{
-    font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;
-    white-space:nowrap;
-  }
-  .badge.ok{background:#dcfce7;color:var(--ok);}
-  .badge.warn{background:#fef3c7;color:var(--warn);}
-  .badge.bad{background:#fee2e2;color:var(--bad);}
-  .badge.na{background:#f3f4f6;color:var(--soft);}
+/* ── 主容器 ── */
+.container{max-width:600px;margin:0 auto;padding:20px 16px;}
 
-  .section-title{font-size:13px;color:var(--soft);font-weight:700;margin:22px 4px 8px;letter-spacing:.5px;}
+/* ── 英雄區 ── */
+.hero{text-align:center;padding:28px 16px 24px;}
+.hero-icon{font-size:64px;margin-bottom:12px;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.hero-title{font-size:22px;font-weight:900;color:var(--parchment);letter-spacing:2px;margin-bottom:6px;}
+.hero-sub{font-size:12px;color:var(--stone);line-height:1.8;font-family:'DM Mono',monospace;}
 
-  .btn{
-    display:block;width:100%;border:none;border-radius:14px;
-    padding:16px;font-size:17px;font-weight:700;cursor:pointer;
-    margin-top:10px;text-align:center;text-decoration:none;
-  }
-  .btn.primary{background:var(--brand);color:#fff;}
-  .btn.ghost{background:#fff;color:var(--brand);border:2px solid var(--brand);}
-  .btn:active{transform:scale(.99);}
+/* ── 總分卡片 ── */
+.score-card{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(201,146,42,.2);
+  border-radius:20px;padding:20px;margin-bottom:20px;
+  display:flex;align-items:center;gap:20px;
+}
+.score-circle{width:90px;height:90px;flex-shrink:0;position:relative;}
+.score-circle svg{transform:rotate(-90deg);}
+.score-num{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;}
+.score-num .num{font-size:28px;font-weight:900;color:var(--gold);font-family:'DM Mono',monospace;}
+.score-num .max{font-size:9px;color:var(--stone);font-family:'DM Mono',monospace;}
+.score-info{flex:1;}
+.score-status{font-size:16px;font-weight:700;margin-bottom:6px;}
+.score-desc{font-size:11px;color:var(--stone);line-height:1.7;}
+.score-badge{display:inline-flex;align-items:center;gap:5px;margin-top:8px;
+  background:rgba(45,107,74,.15);border:1px solid rgba(45,107,74,.3);
+  border-radius:8px;padding:4px 10px;font-size:10px;color:#6ee7b7;font-weight:700;}
 
-  .note{font-size:12px;color:var(--soft);text-align:center;margin-top:14px;}
-  .foot{text-align:center;color:#9ca3af;font-size:11px;margin-top:28px;}
-  details{background:#fff;border-radius:12px;padding:4px 14px;margin-top:10px;font-size:13px;color:var(--soft);}
-  summary{padding:10px 0;cursor:pointer;font-weight:600;color:var(--ink);}
+/* ── 掃描按鈕 ── */
+.scan-btn{
+  width:100%;background:linear-gradient(135deg,var(--gold),var(--gold-l));
+  border:none;border-radius:14px;padding:16px;
+  color:var(--ink);font-size:16px;font-weight:900;letter-spacing:2px;
+  cursor:pointer;margin-bottom:20px;font-family:'Noto Serif TC',serif;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  box-shadow:0 8px 28px rgba(201,146,42,.3);transition:all .2s;
+}
+.scan-btn:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(201,146,42,.4);}
+.scan-btn:disabled{background:rgba(255,255,255,.08);color:var(--stone);
+  box-shadow:none;transform:none;cursor:not-allowed;}
+
+/* ── 安裝行動區 ── */
+.install-area{display:none;margin-bottom:20px;}
+.install-btn{
+  width:100%;border:none;border-radius:14px;padding:16px;
+  font-size:16px;font-weight:900;letter-spacing:1px;cursor:pointer;
+  font-family:'Noto Serif TC',serif;display:flex;align-items:center;
+  justify-content:center;gap:10px;box-shadow:0 8px 28px rgba(45,107,74,.3);
+  background:linear-gradient(135deg,var(--jade),#1e5c38);color:#fff;
+}
+.install-note{font-size:10px;color:var(--stone);text-align:center;
+  margin-top:8px;font-family:'DM Mono',monospace;line-height:1.6;}
+
+/* ── 診斷項目 ── */
+.section-title{
+  font-size:9px;color:var(--stone);letter-spacing:3px;
+  font-family:'DM Mono',monospace;margin-bottom:12px;margin-top:20px;
+}
+.check-card{
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+  border-radius:14px;padding:14px 16px;margin-bottom:8px;
+  display:flex;align-items:center;gap:14px;transition:all .3s;
+}
+.check-card.pass{border-color:rgba(45,107,74,.3);background:rgba(45,107,74,.05);}
+.check-card.fail{border-color:rgba(248,113,113,.3);background:rgba(248,113,113,.05);}
+.check-card.warn{border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.05);}
+.check-card.na{border-color:rgba(255,255,255,.1);}
+.check-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-size:18px;flex-shrink:0;}
+.ci-default{background:rgba(255,255,255,.06);}
+.ci-pass{background:rgba(45,107,74,.15);}
+.ci-fail{background:rgba(248,113,113,.12);}
+.ci-warn{background:rgba(251,191,36,.12);}
+.ci-na{background:rgba(255,255,255,.05);}
+.check-info{flex:1;min-width:0;}
+.check-name{font-size:13px;font-weight:700;margin-bottom:2px;}
+.check-value{font-size:11px;color:var(--stone);font-family:'DM Mono',monospace;}
+.check-result{flex-shrink:0;text-align:right;}
+.result-badge{font-size:9px;padding:3px 8px;border-radius:6px;font-weight:700;letter-spacing:1px;}
+.rb-pass{background:rgba(45,107,74,.2);color:#6ee7b7;}
+.rb-fail{background:rgba(248,113,113,.2);color:#fca5a5;}
+.rb-warn{background:rgba(251,191,36,.2);color:#fbbf24;}
+.rb-wait{background:rgba(255,255,255,.08);color:var(--stone);}
+.rb-na{background:rgba(255,255,255,.06);color:var(--stone);}
+.rb-checking{background:rgba(201,146,42,.15);color:var(--gold);}
+
+/* ── 解決方案區 ── */
+.solution-card{
+  background:rgba(139,26,26,.08);border:1px solid rgba(139,26,26,.2);
+  border-radius:14px;padding:14px;margin-bottom:8px;
+}
+.sol-title{font-size:12px;font-weight:700;color:#fca5a5;margin-bottom:8px;
+  display:flex;align-items:center;gap:6px;}
+.sol-steps{display:flex;flex-direction:column;gap:6px;}
+.sol-step{font-size:11px;color:rgba(245,240,232,.6);line-height:1.6;
+  padding-left:16px;position:relative;}
+.sol-step::before{content:'→';position:absolute;left:0;color:var(--gold);}
+
+/* ── 分享報告 ── */
+.share-row{display:flex;gap:8px;margin-top:20px;}
+.share-btn{flex:1;border-radius:10px;padding:12px 8px;
+  border:1px solid;font-size:11px;font-weight:700;cursor:pointer;
+  text-align:center;font-family:'Noto Serif TC',serif;}
+.sb-copy{background:rgba(42,90,139,.12);border-color:rgba(42,90,139,.3);color:#93c5fd;}
+.sb-save{background:rgba(201,146,42,.12);border-color:rgba(201,146,42,.3);color:var(--gold);}
+.sb-share{background:rgba(45,107,74,.12);border-color:rgba(45,107,74,.3);color:#6ee7b7;}
+
+/* ── 動畫 ── */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.pulsing{animation:pulse 1.5s ease-in-out infinite;}
+
+/* ── 誠實聲明 ── */
+.honest-note{background:rgba(42,90,139,.08);border:1px solid rgba(42,90,139,.2);
+  border-radius:12px;padding:12px 14px;margin-top:16px;font-size:10px;
+  color:var(--stone);line-height:1.8;font-family:'DM Mono',monospace;}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="logo">法</div>
-    <h1>法智通 安裝體檢</h1>
-    <p>插上手機免裝 App，先檢查你的手機適不適合</p>
-  </header>
 
-  <div id="verdict" class="verdict warn">
-    <div class="big">⏳</div>
-    <h2>檢測中…</h2>
-    <p>正在讀取你的手機資料</p>
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">⚖️</div>
+    <div>
+      <div class="logo-text">法智通 LexiPass</div>
+      <div class="logo-sub">裝置相容性診斷工具</div>
+    </div>
+  </div>
+  <div class="version">v2.0</div>
+</div>
+
+<div class="container">
+
+  <!-- 英雄區 -->
+  <div class="hero">
+    <div class="hero-icon">🔍</div>
+    <div class="hero-title">裝置相容性診斷</div>
+    <div class="hero-sub">
+      自動偵測您的裝置規格<br>
+      判斷是否適合安裝法智通 App<br>
+      並提供問題排除建議
+    </div>
   </div>
 
-  <div class="section-title">檢測項目</div>
-  <div class="card" id="items"></div>
+  <!-- 總分 -->
+  <div class="score-card" id="scoreCard">
+    <div class="score-circle">
+      <svg width="90" height="90" viewBox="0 0 90 90">
+        <circle cx="45" cy="45" r="38" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="8"/>
+        <circle cx="45" cy="45" r="38" fill="none" stroke="url(#scoreGrad)" stroke-width="8"
+          stroke-linecap="round" stroke-dasharray="239" id="scoreRing"
+          stroke-dashoffset="239"/>
+        <defs>
+          <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#f0c840"/>
+            <stop offset="100%" stop-color="#c9922a"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div class="score-num">
+        <div class="num" id="scoreNum">--</div>
+        <div class="max">/ 100</div>
+      </div>
+    </div>
+    <div class="score-info">
+      <div class="score-status" id="scoreStatus">尚未診斷</div>
+      <div class="score-desc" id="scoreDesc">點擊下方按鈕開始偵測您的裝置是否符合安裝需求</div>
+      <div class="score-badge" id="scoreBadge" style="display:none">✅ 適合安裝</div>
+    </div>
+  </div>
 
-  <div id="action"></div>
+  <!-- 開始按鈕 -->
+  <button class="scan-btn" id="scanBtn" onclick="startDiagnosis()">
+    <span id="scanBtnIcon">🚀</span>
+    <span id="scanBtnText">開始診斷</span>
+  </button>
 
-  <details>
-    <summary>為什麼有些項目顯示「需安裝後才知道」？</summary>
-    <p>手機瀏覽器基於隱私保護，無法讀到 100% 精準的記憶體與儲存空間。
-    這版是「免安裝快速體檢」，已盡量估算；若需完整精準數據，可改用 USB 接電腦的完整版檢測。</p>
-  </details>
+  <!-- 安裝行動區（診斷後顯示） -->
+  <div class="install-area" id="installArea">
+    <button class="install-btn" id="installBtn" onclick="doInstall()">
+      <span id="installIcon">⬇️</span>
+      <span id="installText">下載並安裝法智通</span>
+    </button>
+    <div class="install-note" id="installNote"></div>
+  </div>
 
-  <div class="foot">法智通 LexiPass · 安裝體檢工具 v0.1（雛形）</div>
+  <!-- 診斷項目 -->
+  <div class="section-title">系統需求檢查</div>
+
+  <div class="check-card" id="card-os">
+    <div class="check-icon ci-default" id="icon-os">📱</div>
+    <div class="check-info">
+      <div class="check-name">作業系統版本</div>
+      <div class="check-value" id="val-os">等待檢查...</div>
+    </div>
+    <div class="check-result"><div class="result-badge rb-wait" id="badge-os">待檢查</div></div>
+  </div>
+
+  <div class="check-card" id="card-browser">
+    <div class="check-icon ci-default" id="icon-browser">🌐</div>
+    <div class="check-info">
+      <div class="check-name">瀏覽器</div>
+      <div class="check-value" id="val-browser">等待檢查...</div>
+    </div>
+    <div class="check-result"><div class="result-badge rb-wait" id="badge-browser">待檢查</div></div>
+  </div>
+
+  <div class="check-card" id="card-storage">
+    <div class="check-icon ci-default" id="icon-storage">💾</div>
+    <div class="check-info">
+      <div class="check-name">儲存空間</div>
+      <div class="check-value" id="val-storage">等待檢查...</div>
+    </div>
+    <div class="check-result"><div class="result-badge rb-wait" id="badge-storage">待檢查</div></div>
+  </div>
+
+  <div class="check-card" id="card-memory">
+    <div class="check-icon ci-default" id="icon-memory">🧠</div>
+    <div class="check-info">
+      <div class="check-name">記憶體 RAM</div>
+      <div class="check-value" id="val-memory">等待檢查...</div>
+    </div>
+    <div class="check-result"><div class="result-badge rb-wait" id="badge-memory">待檢查</div></div>
+  </div>
+
+  <div class="section-title">網路連線檢查</div>
+
+  <div class="check-card" id="card-network">
+    <div class="check-icon ci-default" id="icon-network">📡</div>
+    <div class="check-info">
+      <div class="check-name">網路連線</div>
+      <div class="check-value" id="val-network">等待檢查...</div>
+    </div>
+    <div class="check-result"><div class="result-badge rb-wait" id="badge-network">待檢查</div></div>
+  </div>
+
+  <div class="check-card" id="card-netquality">
+    <div class="check-icon ci-default" id="icon-netquality">⚡</div>
+    <div class="check-info">
+      <div class="check-name">連線品質</div>
+      <div class="check-value" id="val-netquality">等待檢查...</div>
+    </div>
+    <div class="check-result"><div class="result-badge rb-wait" id="badge-netquality">待檢查</div></div>
+  </div>
+
+  <div class="section-title">功能支援檢查</div>
+
+  <div class="check-card" id="card-camera">
+    <div class="check-icon ci-default" id="icon-camera">📷</div>
+    <div class="check-info">
+      <div class="check-name">相機功能</div>
+      <div class="check-value" id="val-camera">等待檢查...</div>
+    </div>
+    <div class="check-result"><div class="result-badge rb-wait" id="badge-camera">待檢查</div></div>
+  </div>
+
+  <div class="check-card" id="card-gps">
+    <div class="check-icon ci-default" id="icon-gps">📍</div>
+    <div class="check-info">
+      <div class="check-name">GPS 定位</div>
+      <div class="check-value" id="val-gps">等待檢查...</div>
+    </div>
+    <div class="check-result"><div class="result-badge rb-wait" id="badge-gps">待檢查</div></div>
+  </div>
+
+  <div class="check-card" id="card-notification">
+    <div class="check-icon ci-default" id="icon-notification">🔔</div>
+    <div class="check-info">
+      <div class="check-name">推播通知</div>
+      <div class="check-value" id="val-notification">等待檢查...</div>
+    </div>
+    <div class="check-result"><div class="result-badge rb-wait" id="badge-notification">待檢查</div></div>
+  </div>
+
+  <!-- 解決方案（診斷後顯示） -->
+  <div id="solutionArea" style="display:none;margin-top:20px;">
+    <div class="section-title">⚠️ 問題排除建議</div>
+    <div id="solutionList"></div>
+  </div>
+
+  <!-- 裝置詳細資訊 -->
+  <div id="deviceInfo" style="display:none;margin-top:20px;">
+    <div class="section-title">裝置完整資訊</div>
+    <div style="background:rgba(0,0,0,.3);border-radius:12px;padding:14px;font-family:'DM Mono',monospace;font-size:10px;color:var(--stone);line-height:2;" id="deviceInfoContent"></div>
+  </div>
+
+  <!-- 分享報告 -->
+  <div id="shareArea" style="display:none;">
+    <div class="share-row">
+      <button class="share-btn sb-copy" onclick="copyReport()">📋 複製報告</button>
+      <button class="share-btn sb-save" onclick="saveReport()">💾 儲存結果</button>
+      <button class="share-btn sb-share" onclick="shareReport()">📤 分享報告</button>
+    </div>
+  </div>
+
+  <!-- 誠實聲明 -->
+  <div class="honest-note">
+    ⓘ 本工具為「免安裝快速診斷」。基於瀏覽器隱私限制，記憶體、儲存空間為估算值；
+    標示「需安裝後確認」的項目，代表瀏覽器無法讀取，需安裝 App 後才能精確檢測。
+    本工具不做無法驗證的測試，結果僅供安裝前參考。
+  </div>
+
+  <div style="height:40px;"></div>
 </div>
 
 <script>
-/* ============================================================
-   判讀標準（之後可在這裡調整數字）
-   ============================================================ */
+/* ════════════════════════════════════════════════
+   判讀標準（要調整數字改這裡）
+   ════════════════════════════════════════════════ */
 const STD = {
-  android: { ok:9,  warn:7 },     // Android 9+ 適合；7~8 勉強；<7 不適合
-  ios:     { ok:14, warn:12 },    // iOS 14+ 適合；12~13 勉強；<12 不適合
-  ramGB:   { ok:3,  warn:2 },     // RAM 3GB+ 適合；2~3 勉強；<2 不適合
-  freeGB:  { ok:1,  warn:0.3 },   // 可用空間 1GB+ 適合；0.3~1 勉強；<0.3 不適合
-  screenW: { ok:360, warn:320 },  // 螢幕寬 360px+ 適合
+  android:{ok:9, warn:7},     // Android 9+ 適合
+  ios:    {ok:14,warn:12},    // iOS 14+ 適合
+  ramGB:  {ok:3, warn:2},     // RAM 3GB+ 適合
+  freeGB: {ok:1, warn:0.3},   // 可用空間 1GB+ 適合
 };
-const RANK = { ok:0, warn:1, bad:2, na:-1 };
+const APK_URL = '';           // ← 之後把法智通 APK 下載連結填這裡
+const IOS_NOTE = 'iPhone 版本的安裝方式請洽客服協助';  // 不杜撰上架日期
+const SUPPORT = 'chia397777@gmail.com';
 
-/* ---------- 工具 ---------- */
-function badge(level){
-  return {ok:'✅ 適合',warn:'⚠️ 勉強',bad:'❌ 不適合',na:'— 需安裝後才知道'}[level];
-}
-function tier(val, s, higherBetter=true){
-  if(val==null) return 'na';
-  if(higherBetter){
-    if(val>=s.ok) return 'ok';
-    if(val>=s.warn) return 'warn';
-    return 'bad';
-  }
+/* 權重（僅計入「測得到」的項目，動態分母，誠實計分） */
+const WEIGHT = {os:25, network:20, storage:15, memory:15,
+                browser:10, netquality:5, camera:5, gps:2, notification:3};
+
+let results = {};
+let deviceType = 'other';
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+function setChecking(id){
+  const b=document.getElementById('badge-'+id);
+  document.getElementById('val-'+id).textContent='偵測中...';
+  b.textContent='偵測中'; b.className='result-badge rb-checking pulsing';
 }
 
-/* ---------- 偵測：作業系統與版本 ---------- */
-function detectOS(){
-  const ua = navigator.userAgent;
-  let os='未知', ver=null, type='other';
+/* status: pass/warn/fail/na ; na=需安裝後確認（不計分） */
+function setCard(id, status, value, badgeText){
+  document.getElementById('card-'+id).className='check-card '+status;
+  document.getElementById('icon-'+id).className='check-icon ci-'+status;
+  document.getElementById('val-'+id).textContent=value;
+  const b=document.getElementById('badge-'+id);
+  b.textContent=badgeText;
+  b.className='result-badge rb-'+(status==='pass'?'pass':status==='warn'?'warn':status==='fail'?'fail':'na');
+}
+
+/* 記錄結果並計分 */
+function record(id, status, ratio, msg){
+  // ratio: 此項拿到權重的幾成（pass=1, warn=0.5, fail=0）；na 不計
+  results[id] = {status, weight:WEIGHT[id], earned: status==='na'?0:WEIGHT[id]*ratio,
+                 measurable: status!=='na', msg: msg||null};
+}
+
+async function startDiagnosis(){
+  const btn=document.getElementById('scanBtn');
+  btn.disabled=true;
+  document.getElementById('scanBtnIcon').textContent='⏳';
+  document.getElementById('scanBtnText').textContent='診斷中，請稍候...';
+  results={};
+  document.getElementById('scoreNum').textContent='--';
+  document.getElementById('scoreStatus').textContent='診斷進行中...';
+  document.getElementById('scoreStatus').style.color='var(--gold)';
+  document.getElementById('scoreDesc').textContent='正在逐項檢查您的裝置規格...';
+  document.getElementById('scoreBadge').style.display='none';
+  document.getElementById('solutionArea').style.display='none';
+  document.getElementById('shareArea').style.display='none';
+  document.getElementById('deviceInfo').style.display='none';
+  document.getElementById('installArea').style.display='none';
+
+  const ua=navigator.userAgent;
+
+  /* ─ 1. 作業系統 ─ */
+  setChecking('os'); await sleep(500);
   let m;
-  if(/Android/i.test(ua)){
-    type='android';
-    m = ua.match(/Android\s+([\d.]+)/);
-    ver = m ? parseFloat(m[1]) : null;
-    os = 'Android ' + (m ? m[1] : '（版本未知）');
+  if((m=ua.match(/Android\s+([\d.]+)/))){
+    deviceType='android';
+    const ver=parseFloat(m[1]);
+    if(ver>=STD.android.ok){ setCard('os','pass','Android '+m[1],'✅ 適合'); record('os','pass',1); }
+    else if(ver>=STD.android.warn){ setCard('os','warn','Android '+m[1],'⚠️ 勉強'); record('os','warn',0.5,'Android 版本偏舊，建議升級至 '+STD.android.ok+' 以上以獲得最佳體驗'); }
+    else{ setCard('os','fail','Android '+m[1],'❌ 不適合'); record('os','fail',0,'Android 版本過低（需 '+STD.android.warn+' 以上），建議更換較新的手機'); }
   } else if(/iPhone|iPad|iPod/i.test(ua)){
-    type='ios';
-    m = ua.match(/OS\s+(\d+)[_.](\d+)/);
-    ver = m ? parseFloat(m[1]+'.'+m[2]) : null;
-    os = 'iOS ' + (m ? m[1]+'.'+m[2] : '（版本未知）');
-  } else if(/Windows/i.test(ua)){ os='Windows 電腦'; type='desktop'; }
-  else if(/Mac/i.test(ua)){ os='Mac 電腦'; type='desktop'; }
-  return {os, ver, type};
-}
+    deviceType='ios';
+    m=ua.match(/OS\s+(\d+)[_.](\d+)/);
+    const verStr=m?m[1]+'.'+m[2]:'未知';
+    setCard('os','warn','iOS '+verStr,'⚠️ 請洽客服');
+    record('os','warn',0.5,IOS_NOTE);
+  } else {
+    deviceType='desktop';
+    setCard('os','warn','桌面裝置（非手機）','⚠️ 請用手機');
+    record('os','warn',0.5,'偵測到您使用電腦開啟，請改用「手機」瀏覽器開啟本工具再測一次');
+  }
 
-/* ---------- 偵測：瀏覽器 ---------- */
-function detectBrowser(){
-  const ua=navigator.userAgent; let m;
-  if((m=ua.match(/EdgA?\/([\d.]+)/))) return 'Edge '+m[1];
-  if((m=ua.match(/CriOS\/([\d.]+)/))) return 'Chrome '+m[1];
-  if((m=ua.match(/Chrome\/([\d.]+)/))) return 'Chrome '+m[1];
-  if((m=ua.match(/Version\/([\d.]+).*Safari/))) return 'Safari '+m[1];
-  if((m=ua.match(/FxiOS|Firefox\/([\d.]+)/))) return 'Firefox '+(m[1]||'');
-  return '其他瀏覽器';
-}
+  /* ─ 2. 瀏覽器 ─ */
+  setChecking('browser'); await sleep(400);
+  let bName='其他瀏覽器', good=false;
+  if(/EdgA?\//.test(ua)){ bName='Edge'; good=true; }
+  else if(/SamsungBrowser/.test(ua)){ bName='Samsung Browser'; good=true; }
+  else if(/CriOS|Chrome\//.test(ua)){ bName='Chrome'; good=true; }
+  else if(/Version\/.*Safari/.test(ua)){ bName='Safari'; good=true; }
+  else if(/Firefox|FxiOS/.test(ua)){ bName='Firefox'; good=true; }
+  if(good){ setCard('browser','pass',bName,'✅ 支援'); record('browser','pass',1); }
+  else{ setCard('browser','warn',bName,'⚠️ 可用'); record('browser','warn',0.5,'建議改用 Chrome 或 Safari 以確保功能正常'); }
 
-/* ---------- 偵測：網路 ---------- */
-function detectNet(){
-  const online = navigator.onLine;
-  const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-  let speed=null, type='';
-  if(c){ speed=c.effectiveType; type = speed; }
-  return {online, speed};
-}
-
-/* ---------- 偵測：RAM（約略，Chrome 才有） ---------- */
-function detectRAM(){
-  return ('deviceMemory' in navigator) ? navigator.deviceMemory : null; // GB
-}
-
-/* ---------- 偵測：儲存空間估算 ---------- */
-async function detectStorage(){
+  /* ─ 3. 儲存空間 ─ */
+  setChecking('storage'); await sleep(600);
   if(navigator.storage && navigator.storage.estimate){
     try{
-      const e = await navigator.storage.estimate();
-      const freeGB = (e.quota - (e.usage||0)) / (1024**3);
-      return freeGB;
-    }catch(_){}
+      const e=await navigator.storage.estimate();
+      const free=(e.quota-(e.usage||0))/(1024**3);
+      const txt='約剩 '+free.toFixed(1)+' GB（估算）';
+      if(free>=STD.freeGB.ok){ setCard('storage','pass',txt,'✅ 充足'); record('storage','pass',1); }
+      else if(free>=STD.freeGB.warn){ setCard('storage','warn',txt,'⚠️ 偏低'); record('storage','warn',0.5,'可用空間不足 1GB（約剩 '+free.toFixed(1)+'GB），建議清理後再安裝'); }
+      else{ setCard('storage','fail',txt,'❌ 不足'); record('storage','fail',0,'可用空間嚴重不足（約剩 '+free.toFixed(1)+'GB），請先清理至少 500MB'); }
+    }catch(_){ setCard('storage','na','此瀏覽器無法讀取','需安裝後確認'); record('storage','na',0); }
+  } else { setCard('storage','na','此瀏覽器無法讀取','需安裝後確認'); record('storage','na',0); }
+
+  /* ─ 4. 記憶體 RAM ─ */
+  setChecking('memory'); await sleep(400);
+  if('deviceMemory' in navigator){
+    const mem=navigator.deviceMemory;
+    const txt='約 '+mem+' GB（估算）';
+    if(mem>=STD.ramGB.ok){ setCard('memory','pass',txt,'✅ 充足'); record('memory','pass',1); }
+    else if(mem>=STD.ramGB.warn){ setCard('memory','warn',txt,'⚠️ 可用'); record('memory','warn',0.5,'RAM 偏低，多工使用時 App 可能較慢'); }
+    else{ setCard('memory','fail',txt,'❌ 不足'); record('memory','fail',0,'RAM 不足 2GB，App 可能無法順暢運行'); }
+  } else { setCard('memory','na','此瀏覽器無法讀取','需安裝後確認'); record('memory','na',0); }
+
+  /* ─ 5. 網路連線 ─ */
+  setChecking('network'); await sleep(400);
+  if(navigator.onLine){ setCard('network','pass','已連線','✅ 連線正常'); record('network','pass',1); }
+  else{ setCard('network','fail','未連線','❌ 未連線'); record('network','fail',0,'目前沒有網路連線，法智通需連網才能使用查詢與分析功能'); }
+
+  /* ─ 6. 連線品質（誠實：來自系統回報的網路類型，非自行測速） ─ */
+  setChecking('netquality'); await sleep(400);
+  const conn=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
+  if(conn && conn.effectiveType){
+    const t=conn.effectiveType;
+    const txt='系統回報：'+t.toUpperCase();
+    if(t==='4g'){ setCard('netquality','pass',txt,'✅ 良好'); record('netquality','pass',1); }
+    else if(t==='3g'){ setCard('netquality','warn',txt,'⚠️ 普通'); record('netquality','warn',0.5,'網路為 3G，分析結果載入可能較慢，建議使用 Wi-Fi'); }
+    else{ setCard('netquality','fail',txt,'❌ 偏慢'); record('netquality','fail',0,'網路速度偏慢（'+t+'），建議改用 Wi-Fi 或較快的網路'); }
+  } else { setCard('netquality','na','此瀏覽器無法讀取','需安裝後確認'); record('netquality','na',0); }
+
+  /* ─ 7. 相機 ─ */
+  setChecking('camera'); await sleep(400);
+  if(navigator.mediaDevices && navigator.mediaDevices.enumerateDevices){
+    try{
+      const devs=await navigator.mediaDevices.enumerateDevices();
+      const cams=devs.filter(d=>d.kind==='videoinput');
+      if(cams.length>0){ setCard('camera','pass','偵測到 '+cams.length+' 個鏡頭','✅ 可用'); record('camera','pass',1); }
+      else{ setCard('camera','warn','需授權後確認','⚠️ 需授權'); record('camera','warn',0.5,'相機需在 App 內授權後才能使用拍照分析功能'); }
+    }catch(_){ setCard('camera','warn','需授權後確認','⚠️ 需授權'); record('camera','warn',0.5); }
+  } else { setCard('camera','na','此瀏覽器無法讀取','需安裝後確認'); record('camera','na',0); }
+
+  /* ─ 8. GPS（誠實：僅檢查是否支援定位 API，非實際定位） ─ */
+  setChecking('gps'); await sleep(300);
+  if('geolocation' in navigator){ setCard('gps','pass','支援定位（使用時需授權）','✅ 支援'); record('gps','pass',1); }
+  else{ setCard('gps','warn','不支援定位 API','⚠️ 受限'); record('gps','warn',0.5,'此裝置不支援定位，就近法律資源搜尋功能可能受限'); }
+
+  /* ─ 9. 推播通知 ─ */
+  setChecking('notification'); await sleep(300);
+  if('Notification' in window){
+    const p=Notification.permission;
+    if(p==='granted'){ setCard('notification','pass','已授權','✅ 已授權'); record('notification','pass',1); }
+    else if(p==='default'){ setCard('notification','pass','支援（使用時會詢問）','✅ 支援'); record('notification','pass',1); }
+    else{ setCard('notification','warn','已被封鎖','⚠️ 被封鎖'); record('notification','warn',0.5,'推播被封鎖，將收不到案件更新通知，可到設定開啟'); }
+  } else { setCard('notification','warn','不支援推播','⚠️ 受限'); record('notification','warn',0.5,'此瀏覽器不支援推播通知'); }
+
+  /* ══ 計分（動態分母，只算測得到的項目） ══ */
+  await sleep(400);
+  let earned=0, possible=0;
+  Object.values(results).forEach(r=>{ if(r.measurable){ earned+=r.earned; possible+=r.weight; } });
+  const score = possible>0 ? Math.round(earned/possible*100) : 0;
+  animateScore(score);
+  renderVerdict(score);
+  showSolutions();
+  showDeviceInfo();
+  showInstall();
+
+  btn.disabled=false;
+  document.getElementById('scanBtnIcon').textContent='🔄';
+  document.getElementById('scanBtnText').textContent='重新診斷';
+  document.getElementById('shareArea').style.display='block';
+}
+
+function animateScore(target){
+  let cur=0; const ring=document.getElementById('scoreRing'); const num=document.getElementById('scoreNum');
+  const total=239;
+  const t=setInterval(()=>{
+    cur+=2; if(cur>=target){cur=target;clearInterval(t);}
+    num.textContent=cur;
+    ring.style.strokeDashoffset = total-(total*cur/100);
+  },20);
+}
+
+function renderVerdict(score){
+  const st=document.getElementById('scoreStatus');
+  const ds=document.getElementById('scoreDesc');
+  const bd=document.getElementById('scoreBadge');
+  bd.style.display='inline-flex';
+  // 若有任何「不適合(fail)」的硬指標，總評不可給「完全相容」
+  const hasFail=Object.values(results).some(r=>r.status==='fail');
+  if(score>=85 && !hasFail){
+    st.textContent='✅ 適合安裝'; st.style.color='#6ee7b7';
+    ds.textContent='您的裝置符合法智通的安裝需求，可放心安裝。';
+    bd.textContent='✅ 建議立即安裝'; bd.style.background='rgba(45,107,74,.2)'; bd.style.color='#6ee7b7';
+  } else if(score>=65 && !hasFail){
+    st.textContent='⚠️ 基本可用'; st.style.color='#fbbf24';
+    ds.textContent='您的裝置基本符合需求，部分項目偏低，建議參考下方建議後安裝。';
+    bd.textContent='⚠️ 可安裝，建議留意'; bd.style.background='rgba(251,191,36,.15)'; bd.style.color='#fbbf24';
+  } else {
+    st.textContent='❌ 不建議安裝'; st.style.color='#fca5a5';
+    ds.textContent='您的裝置有項目未達標，建議先排除下方問題，或考慮更換裝置。';
+    bd.textContent='❌ 需先解決問題'; bd.style.background='rgba(248,113,113,.15)'; bd.style.color='#fca5a5';
   }
-  return null;
 }
 
-/* ============================================================
-   主流程
-   ============================================================ */
-async function run(){
-  const osInfo = detectOS();
-  const browser = detectBrowser();
-  const net = detectNet();
-  const ram = detectRAM();
-  const freeGB = await detectStorage();
-  const sw = window.screen.width;
-
-  const items = [];
-
-  // 系統版本
-  let osLevel='na';
-  if(osInfo.type==='android') osLevel = tier(osInfo.ver, STD.android);
-  else if(osInfo.type==='ios') osLevel = tier(osInfo.ver, STD.ios);
-  else if(osInfo.type==='desktop') osLevel='warn';
-  items.push({ic:'📱',t:'系統版本',v:osInfo.os,level:osLevel,
-    desc: osInfo.type==='desktop' ? '建議改用手機開啟' : ''});
-
-  // 網路
-  let netLevel = !net.online ? 'bad' : (net.speed==='slow-2g'||net.speed==='2g' ? 'warn':'ok');
-  items.push({ic:'🌐',t:'網路連線',
-    v: net.online ? ('已連線'+(net.speed? '・'+net.speed:'')) : '未連線',
-    level:netLevel});
-
-  // RAM
-  let ramLevel = tier(ram, STD.ramGB);
-  items.push({ic:'🧠',t:'記憶體 RAM',
-    v: ram!=null ? ('約 '+ram+' GB（估算）') : '此瀏覽器無法讀取',
-    level:ramLevel});
-
-  // 儲存空間
-  let stoLevel = tier(freeGB, STD.freeGB);
-  items.push({ic:'💾',t:'可用空間',
-    v: freeGB!=null ? ('約 '+freeGB.toFixed(1)+' GB（估算）') : '此瀏覽器無法讀取',
-    level:stoLevel});
-
-  // 螢幕
-  let scrLevel = tier(sw, STD.screenW);
-  items.push({ic:'📐',t:'螢幕寬度',v:sw+' px',level:scrLevel});
-
-  // 瀏覽器
-  items.push({ic:'🧭',t:'瀏覽器',v:browser,level:'ok'});
-
-  renderItems(items);
-  renderVerdict(items, osInfo);
-  renderAction(osInfo);
-}
-
-function renderItems(items){
-  document.getElementById('items').innerHTML = items.map(it=>`
-    <div class="row">
-      <div class="ic">${it.ic}</div>
-      <div class="meta">
-        <div class="t">${it.t}</div>
-        <div class="v">${it.v}${it.desc?'　·　'+it.desc:''}</div>
+function showSolutions(){
+  const probs=Object.values(results).filter(r=>r.msg && (r.status==='warn'||r.status==='fail'));
+  const area=document.getElementById('solutionArea');
+  const list=document.getElementById('solutionList');
+  if(probs.length===0){ area.style.display='none'; return; }
+  area.style.display='block';
+  list.innerHTML=probs.map(p=>`
+    <div class="solution-card">
+      <div class="sol-title">${p.status==='fail'?'❌':'⚠️'} 需要注意</div>
+      <div class="sol-steps">
+        <div class="sol-step">${p.msg}</div>
+        ${p.status==='fail'?`<div class="sol-step">如需協助，請聯絡客服：${SUPPORT}</div>`:''}
       </div>
-      <div class="badge ${it.level}">${badge(it.level)}</div>
     </div>`).join('');
 }
 
-function renderVerdict(items, osInfo){
-  // 取所有「真的有讀到」的項目裡最差的等級（na 不計）
-  let worst = 'ok';
-  items.forEach(it=>{ if(RANK[it.level]>RANK[worst]) worst=it.level; });
-  const el = document.getElementById('verdict');
-  const map = {
-    ok:  {cls:'ok',  ic:'🟢', h:'你的手機適合安裝！', p:'各項檢查都通過，可以放心安裝法智通'},
-    warn:{cls:'warn',ic:'🟡', h:'勉強可以，但要注意', p:'部分項目偏低，安裝後可能比較吃力'},
-    bad: {cls:'bad', ic:'🔴', h:'這支手機不建議安裝', p:'有項目未達標，安裝後可能無法正常使用'},
-  };
-  const m = map[worst];
-  el.className = 'verdict '+m.cls;
-  el.innerHTML = `<div class="big">${m.ic}</div><h2>${m.h}</h2><p>${m.p}</p>`;
+function showDeviceInfo(){
+  const ua=navigator.userAgent;
+  const conn=navigator.connection||{};
+  const c=`裝置代理字串：${ua.substring(0,90)}...
+螢幕解析度：${screen.width} × ${screen.height}（寬 ${window.innerWidth}px）
+像素密度：${window.devicePixelRatio||1}x
+語言設定：${navigator.language}
+時區：${Intl.DateTimeFormat().resolvedOptions().timeZone}
+觸控支援：${navigator.maxTouchPoints>0?'是':'否'}
+網路類型：${conn.effectiveType||'未知'}
+診斷時間：${new Date().toLocaleString('zh-TW')}`;
+  document.getElementById('deviceInfoContent').textContent=c;
+  document.getElementById('deviceInfo').style.display='block';
 }
 
-function renderAction(osInfo){
-  const box = document.getElementById('action');
-  let html = '';
-  if(osInfo.type==='android'){
-    html = `<a class="btn primary" href="#" onclick="alert('這裡之後會放法智通 APK 下載連結');return false;">⬇️ 下載並安裝法智通</a>
-            <div class="note">Android 直接安裝。首次安裝需允許「未知來源」，會有圖文教學。</div>`;
-  } else if(osInfo.type==='ios'){
-    html = `<a class="btn primary" href="#" onclick="alert('這裡之後會放 TestFlight 連結');return false;">前往 TestFlight 安裝</a>
-            <div class="note">iPhone 需透過 Apple 官方 TestFlight 安裝（蘋果規定）。</div>`;
+function showInstall(){
+  const area=document.getElementById('installArea');
+  const btn=document.getElementById('installBtn');
+  const icon=document.getElementById('installIcon');
+  const text=document.getElementById('installText');
+  const note=document.getElementById('installNote');
+  area.style.display='block';
+  if(deviceType==='android'){
+    icon.textContent='⬇️'; text.textContent='下載並安裝法智通';
+    note.textContent='Android 直接安裝。首次安裝需允許「未知來源」，安裝時會有引導。';
+  } else if(deviceType==='ios'){
+    icon.textContent='🍎'; text.textContent='iPhone 安裝方式';
+    note.textContent=IOS_NOTE;
   } else {
-    html = `<a class="btn ghost" href="#" onclick="alert('請改用手機掃描網址');return false;">請改用「手機」開啟此頁</a>
-            <div class="note">目前偵測到你用電腦開啟，請用手機瀏覽器掃描網址再測一次。</div>`;
+    icon.textContent='📱'; text.textContent='請改用手機開啟本頁';
+    note.textContent='目前偵測到電腦，請用手機瀏覽器開啟此網址再安裝。';
   }
-  html += `<button class="btn ghost" onclick="copyReport()">📋 複製體檢報告（傳給客服）</button>`;
-  box.innerHTML = html;
+}
+
+function doInstall(){
+  if(deviceType==='android'){
+    if(APK_URL){ window.location.href=APK_URL; }
+    else{ alert('法智通 APK 下載連結尚未設定。\n（之後把連結填進程式碼最上面的 APK_URL 即可啟用）'); }
+  } else if(deviceType==='ios'){
+    alert(IOS_NOTE+'\n客服：'+SUPPORT);
+  } else {
+    alert('請改用手機瀏覽器開啟本網址再安裝。');
+  }
+}
+
+function buildReportText(){
+  const lines=[];
+  lines.push('📋 法智通裝置診斷報告');
+  lines.push('總評：'+document.getElementById('scoreStatus').textContent+'（'+document.getElementById('scoreNum').textContent+'/100）');
+  lines.push('─────────────');
+  document.querySelectorAll('.check-card').forEach(card=>{
+    const name=card.querySelector('.check-name'); if(!name) return;
+    const val=card.querySelector('.check-value').textContent;
+    const bd=card.querySelector('.result-badge').textContent;
+    lines.push('・'+name.textContent+'：'+val+'（'+bd+'）');
+  });
+  lines.push('─────────────');
+  lines.push(document.getElementById('deviceInfoContent').textContent);
+  return lines.join('\n');
 }
 
 function copyReport(){
-  const v = document.getElementById('verdict').innerText.replace(/\n+/g,' ');
-  const rows = [...document.querySelectorAll('#items .row')].map(r=>{
-    const t=r.querySelector('.t').innerText;
-    const val=r.querySelector('.v').innerText;
-    const b=r.querySelector('.badge').innerText;
-    return `・${t}：${val}（${b}）`;
-  }).join('\n');
-  const text = `📋 法智通安裝體檢報告\n總評：${v}\n${rows}\n裝置：${navigator.userAgent}`;
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(text).then(()=>alert('報告已複製，可貼給客服！'));
-  } else {
-    prompt('複製以下報告：', text);
-  }
+  const text=buildReportText();
+  if(navigator.clipboard){ navigator.clipboard.writeText(text).then(()=>alert('✅ 已複製診斷報告，可貼給客服')); }
+  else{ prompt('複製以下報告：', text); }
 }
 
-run();
+function saveReport(){
+  const el=document.createElement('a');
+  el.href='data:text/plain;charset=utf-8,'+encodeURIComponent(buildReportText());
+  el.download='lexipass-診斷報告.txt';
+  el.click();
+}
+
+function shareReport(){
+  if(navigator.share){
+    navigator.share({title:'法智通裝置診斷報告',
+      text:'診斷分數：'+document.getElementById('scoreNum').textContent+'/100　'+document.getElementById('scoreStatus').textContent,
+      url:location.href});
+  } else { copyReport(); }
+}
 </script>
 </body>
 </html>
