@@ -321,9 +321,10 @@ body{
 
   <!-- 誠實聲明 -->
   <div class="honest-note">
-    ⓘ 本工具為「免安裝快速診斷」。基於瀏覽器隱私限制，記憶體、儲存空間為估算值；
-    標示「需安裝後確認」的項目，代表瀏覽器無法讀取，需安裝 App 後才能精確檢測。
-    本工具不做無法驗證的測試，結果僅供安裝前參考。
+    ⓘ 本工具為「免安裝快速診斷」。基於瀏覽器隱私限制，記憶體為估算值；
+    「儲存空間」瀏覽器無法讀取手機實際剩餘，採「保留聲明」，請自行至「設定→儲存空間」確認。
+    標示「需安裝後確認／請自行確認」的項目，代表瀏覽器無法讀取，需安裝 App 後或自行檢視才能精確判斷。
+    本工具不做無法驗證的測試、不做虛偽不實陳述，結果僅供安裝前參考。
   </div>
 
   <div style="height:40px;"></div>
@@ -487,18 +488,18 @@ async function startDiagnosis(){
   if(good){ setCard('browser','pass',bName,'✅ 支援'); record('browser','pass',1); }
   else{ setCard('browser','warn',bName,'⚠️ 可用'); record('browser','warn',0.5,'建議改用 Chrome 或 Safari 以確保功能正常'); }
 
-  /* ─ 3. 儲存空間 ─ */
+  /* ─ 3. 儲存空間（瀏覽器無法讀取手機真實剩餘空間 → 採「保留聲明」，請使用者自行確認，不做虛偽陳述）─ */
   setChecking('storage'); await sleep(600);
-  if(navigator.storage && navigator.storage.estimate){
-    try{
+  let lowHint='';
+  try{
+    if(navigator.storage && navigator.storage.estimate){
       const e=await navigator.storage.estimate();
-      const free=(e.quota-(e.usage||0))/(1024**3);
-      const txt='約剩 '+free.toFixed(1)+' GB（估算）';
-      if(free>=STD.freeGB.ok){ setCard('storage','pass',txt,'✅ 充足'); record('storage','pass',1); }
-      else if(free>=STD.freeGB.warn){ setCard('storage','warn',txt,'⚠️ 偏低'); record('storage','warn',0.5,'可用空間不足 1GB（約剩 '+free.toFixed(1)+'GB），建議清理後再安裝'); }
-      else{ setCard('storage','fail',txt,'❌ 不足'); record('storage','fail',0,'可用空間嚴重不足（約剩 '+free.toFixed(1)+'GB），請先清理至少 500MB'); }
-    }catch(_){ setCard('storage','na','此瀏覽器無法讀取','需安裝後確認'); record('storage','na',0); }
-  } else { setCard('storage','na','此瀏覽器無法讀取','需安裝後確認'); record('storage','na',0); }
+      const budget=(e.quota-(e.usage||0))/(1024**3); // 註：此為瀏覽器可用額度估算，非手機實際剩餘空間
+      if(budget < 0.5) lowHint='（瀏覽器額度偏低，手機空間很可能已快滿）';
+    }
+  }catch(_){}
+  setCard('storage','na','瀏覽器無法精準讀取手機剩餘空間'+lowHint,'請自行確認');
+  record('storage','na',0,'【保留聲明】基於瀏覽器隱私限制，無法讀取手機實際剩餘空間'+lowHint+'。請到「設定 → 儲存空間」確認至少剩 500MB（本App安裝約需 60MB）');
 
   /* ─ 4. 記憶體 RAM ─ */
   setChecking('memory'); await sleep(400);
