@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>法智通 — 裝置相容性診斷工具</title>
+<title>法寶貝 — 裝置相容性診斷工具</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=DM+Mono:wght@400;500&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -159,7 +159,7 @@ body{
     <div class="logo-icon">👶</div>
     <div>
       <div class="logo-text">法寶寶</div>
-      <div class="logo-sub">法智通 · 裝置診斷小幫手</div>
+      <div class="logo-sub">法寶貝 · 裝置診斷小幫手</div>
     </div>
   </div>
   <div class="version">v2.0</div>
@@ -173,7 +173,7 @@ body{
     <div class="hero-title">裝置相容性診斷</div>
     <div class="hero-sub">
       自動偵測您的裝置規格<br>
-      判斷是否適合安裝法智通 App<br>
+      判斷是否適合安裝法寶貝 App<br>
       並提供問題排除建議
     </div>
   </div>
@@ -215,7 +215,7 @@ body{
   <div class="install-area" id="installArea">
     <button class="install-btn" id="installBtn" onclick="doInstall()">
       <span id="installIcon">⬇️</span>
-      <span id="installText">下載並安裝法智通</span>
+      <span id="installText">下載並安裝法寶貝</span>
     </button>
     <div class="install-note" id="installNote"></div>
   </div>
@@ -340,7 +340,7 @@ const STD = {
   ramGB:  {ok:3, warn:2},     // RAM 3GB+ 適合
   freeGB: {ok:1, warn:0.3},   // 可用空間 1GB+ 適合
 };
-const APK_URL = '';           // ← 之後把法智通 APK 下載連結填這裡
+const APK_URL = '';           // ← 之後把法寶貝 APK 下載連結填這裡
 const IOS_NOTE = 'iPhone 版本的安裝方式請洽客服協助';  // 不杜撰上架日期
 const SUPPORT = 'chia397777@gmail.com';
 
@@ -514,7 +514,7 @@ async function startDiagnosis(){
   /* ─ 5. 網路連線 ─ */
   setChecking('network'); await sleep(400);
   if(navigator.onLine){ setCard('network','pass','已連線','✅ 連線正常'); record('network','pass',1); }
-  else{ setCard('network','fail','未連線','❌ 未連線'); record('network','fail',0,'目前沒有網路連線，法智通需連網才能使用查詢與分析功能'); }
+  else{ setCard('network','fail','未連線','❌ 未連線'); record('network','fail',0,'目前沒有網路連線，法寶貝需連網才能使用查詢與分析功能'); }
 
   /* ─ 6. 連線品質（誠實：來自系統回報的網路類型，非自行測速） ─ */
   setChecking('netquality'); await sleep(400);
@@ -574,7 +574,7 @@ function renderVerdict(score){
   const hasFail=Object.values(results).some(r=>r.status==='fail');
   if(score>=85 && !hasFail){
     st.textContent='✅ 適合安裝'; st.style.color='#6ee7b7';
-    ds.textContent='您的裝置符合法智通的安裝需求，可放心安裝。';
+    ds.textContent='您的裝置符合法寶貝的安裝需求，可放心安裝。';
     bd.textContent='✅ 建議立即安裝'; bd.style.background='rgba(45,107,74,.2)'; bd.style.color='#6ee7b7';
   } else if(score>=65 && !hasFail){
     st.textContent='⚠️ 基本可用'; st.style.color='#fbbf24';
@@ -627,7 +627,7 @@ function showInstall(){
   const note=document.getElementById('installNote');
   area.style.display='block';
   if(deviceType==='android'){
-    icon.textContent='⬇️'; text.textContent='下載並安裝法智通';
+    icon.textContent='⬇️'; text.textContent='下載並安裝法寶貝';
     note.textContent='Android 直接安裝。首次安裝需允許「未知來源」，安裝時會有引導。';
   } else if(deviceType==='ios'){
     icon.textContent='🍎'; text.textContent='iPhone 安裝方式';
@@ -641,7 +641,7 @@ function showInstall(){
 function doInstall(){
   if(deviceType==='android'){
     if(APK_URL){ window.location.href=APK_URL; }
-    else{ alert('法智通 APK 下載連結尚未設定。\n（之後把連結填進程式碼最上面的 APK_URL 即可啟用）'); }
+    else{ alert('法寶貝 APK 下載連結尚未設定。\n（之後把連結填進程式碼最上面的 APK_URL 即可啟用）'); }
   } else if(deviceType==='ios'){
     alert(IOS_NOTE+'\n客服：'+SUPPORT);
   } else {
@@ -651,7 +651,7 @@ function doInstall(){
 
 function buildReportText(){
   const lines=[];
-  lines.push('📋 法智通裝置診斷報告');
+  lines.push('📋 法寶貝裝置診斷報告');
   lines.push('總評：'+document.getElementById('scoreStatus').textContent+'（'+document.getElementById('scoreNum').textContent+'/100）');
   lines.push('─────────────');
   document.querySelectorAll('.check-card').forEach(card=>{
@@ -668,7 +668,7 @@ function buildReportText(){
 function sendToSupport(){
   const text=buildReportText();
   if(navigator.share){
-    navigator.share({title:'法智通裝置診斷報告', text}).catch(()=>fallbackCopy(text));
+    navigator.share({title:'法寶貝裝置診斷報告', text}).catch(()=>fallbackCopy(text));
   } else {
     fallbackCopy(text);
   }
